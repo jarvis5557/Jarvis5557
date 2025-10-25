@@ -1,0 +1,100 @@
+/* Updated admin.js with !admininfo command */
+const fs = require('fs');
+const path = require('path');
+
+let CONFIG = {
+  dataPath: path.join(__dirname, 'data'),
+  adminsFile: 'admins.json',
+  bansFile: 'bans.json',
+  logsFile: 'admin_logs.json',
+  botName: 'Bot'
+};
+
+let admins = new Set();
+let bans = {};
+let logs = [];
+
+function ensureDataPath() {
+  if (!fs.existsSync(CONFIG.dataPath)) fs.mkdirSync(CONFIG.dataPath, { recursive: true });
+}
+function loadJSON(fn, fallback) {
+  try {
+    const p = path.join(CONFIG.dataPath, fn);
+    if (!fs.existsSync(p)) return fallback;
+    return JSON.parse(fs.readFileSync(p, 'utf8'));
+  } catch {
+    return fallback;
+  }
+}
+function saveJSON(fn, data) {
+  fs.writeFileSync(path.join(CONFIG.dataPath, fn), JSON.stringify(data, null, 2), 'utf8');
+}
+function persistAll() {
+  saveJSON(CONFIG.adminsFile, Array.from(admins));
+  saveJSON(CONFIG.bansFile, bans);
+  saveJSON(CONFIG.logsFile, logs);
+}
+function logAction(action, by, details) {
+  logs.unshift({ date: new Date().toISOString(), action, by, details });
+  if (logs.length > 500) logs = logs.slice(0, 500);
+  persistAll();
+}
+
+module.exports = { init, handleMessage };
+
+function init(options = {}) {
+  CONFIG = { ...CONFIG, ...options };
+  ensureDataPath();
+  admins = new Set(loadJSON(CONFIG.adminsFile, []));
+  bans = loadJSON(CONFIG.bansFile, {});
+  logs = loadJSON(CONFIG.logsFile, []);
+}
+
+function isAdmin(id) { return admins.has(String(id)); }
+
+function parseCommand(text) {
+  if (!text || !text.startsWith('!')) return null;
+  const [cmd, ...args] = text.slice(1).split(/\s+/);
+  return { cmd: cmd.toLowerCase(), args };
+}
+
+async function handleMessage(event, api) {
+  const text = event.body || '';
+  const parsed = parseCommand(text);
+  if (!parsed) return false;
+
+  const sender = event.senderID || event.author;
+  const thread = event.threadID;
+
+  if (!isAdmin(sender)) {
+    await safeSend(api, thread, '❌ আপনি এডমিন নন — এই কমান্ড চালাতে পারবেন না।');
+    return true;
+  }
+
+  const { cmd, args } = parsed;
+
+  switch (cmd) {
+    case 'admininfo':
+      await safeSend(api, thread, `┃ 👤 Name      : Abu Bakr Siddik\n┃ 🚹 Gender    : Male\n┃ ❤️ Relation  : Single\n┃ 🎂 Age       : 16\n┃ 🕌 Religion  : Islam\n┃ 🏫 Education : Diploma\n┃ 🏡 Address   : Singra, Nator, Dhaka, Bangladesh\n┣━━━━━━━━━━━━━━━━━━━━━┫\n┃ 🎭 TikTok   : https://www.tiktok.com/@mdabubakar..2009\n┃ 📢 Telegram : https://t.me/mdabubakarsiddik123\n┃ 🌐 Facebook : https://www.facebook.com/share/17EKb7QrS1/`);
+      break;
+    default:
+      await safeSend(api, thread, 'অচেনা কমান্ড — সাহায্যের জন্য !help লিখুন।');
+  }
+
+  return true;
+}
+
+async function safeSend(api, threadID, msg) {
+  try {
+    if (api?.sendMessage) await api.sendMessage(msg, threadID);
+    else console.log('[admin]', msg);
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+process.on('exit', persistAll);
+process.on('SIGINT', () => { persistAll(); process.exit(); });
+process.on('SIGTERM', () => { persistAll(); process.exit(); });
+
+}
