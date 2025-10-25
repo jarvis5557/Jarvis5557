@@ -1,0 +1,19 @@
+// jarvis.js
+module.exports.config = {
+  name: "jarvis",
+  version: "1.0.0",
+  hasPermission: 0,
+  credits: "Bryce",
+  description: "Replies only when someone says 'jarvis'",
+  commandCategory: "general",
+};
+
+module.exports.run = async function ({ api, event }) {
+  const text = event.body.toLowerCase();
+
+  // শুধু তখন উত্তর দেবে, যখন 'jarvis' বলা হবে
+  if (text.includes("jarvis")) {
+    const reply = `👋 হ্যালো! আমি Jarvis — কিভাবে সাহায্য করতে পারি?`;
+    return api.sendMessage(reply, event.threadID, event.messageID);
+  }
+};
