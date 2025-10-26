@@ -1,23 +1,22 @@
+const fs = global.nodemodule["fs-extra"];
+module.exports.config = {
+  name: "Obot",
+  version: "1.0.1",
+  hasPermssion: 0,
+  credits: "𝐂𝐘𝐁𝐄𝐑 ☢️_𖣘 -𝐁𝐎𝐓 ⚠️ 𝑻𝑬𝑨𝑴_ ☢️",
+  description: "goibot",
+  commandCategory: "Noprefix",
+  usages: "noprefix",
+  cooldowns: 5,
+};
 module.exports.handleEvent = async function({ api, event, args, Threads, Users }) {
-  var { threadID, messageID } = event;
+  var { threadID, messageID, reason } = event;
   const moment = require("moment-timezone");
   const time = moment.tz("Asia/Dhaka").format("HH:MM:ss L");
+  var idgr = `${event.threadID}`;
   var id = event.senderID;
   var name = await Users.getNameUser(event.senderID);
 
-  // Personal info responses
-  const personalInfo = [
-    "👤 Name: Abu Bakar Siddik",
-    "🚹 Gender: Male",
-    "❤️ Relation: Single",
-    "🎂 Age: 16",
-    "🕌 Religion: Islam",
-    "🏫 Education: Diploma",
-    "🏡 Address: Singra, Nator, Dhaka, Bangladesh",
-    "🎭 TikTok: https://www.tiktok.com/@mdabubakar..2009",
-    "📢 Telegram: https://t.me/mdabubakarsiddik123",
-    "🌐 Facebook: https://www.facebook.com/share/17EKb7QrS1/"
-  ];
   vir tl =["বেশি bot Bot করলে leave নিবো কিন্তু😒😒",
     "শুনবো না😼 তুমি আমাকে প্রেম করাই দাও নি🥺 পচা তুমি🥺",
     "আমি আবাল দের সাথে কথা বলি না,ok😒",
